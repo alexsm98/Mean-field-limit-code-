@@ -4,14 +4,15 @@ import numpy as np
 import time
 
 class MechanicalRegression:
-    def __init__(self, pb_type, L, activ, D1, D2, p, nu=0.01, gamma2=0.01):
+    def __init__(self, pb_type, L, activ, p, D2, nu=0.01, gamma2=0.01):
         self.pb_type = pb_type
         self.L = L
         self.activ = activ
-        self.alpha1_init = torch.zeros((D1 + 1, p, L), dtype=torch.float64)
+        self.alpha1_init = torch.zeros((p+1, p, L), dtype=torch.float64)
         self.D2 = D2
         self.gamma2 = gamma2
         self.nu = nu
+        self.dt = 1/L if L > 0 else 0
      
     def psi(self, x, D = None):
         if D is None:
@@ -77,11 +78,11 @@ class MechanicalRegression:
             return torch.argmax(pred, axis=1)
         
     def get_mse(self, x, y):
-        """Get MSE after optimizing model (only if pb_type is 'regression')"""
-        return torch.mean((self.get_pred(x) - y)**2)
+        """Get RMSE after optimizing model (only if pb_type is 'regression')"""
+        return torch.sqrt(torch.mean((self.get_pred(x) - y)**2))
     
     def get_accuracy_error(self, x, y):
-        """Get MSE after optimizing model (only if pb_type is 'classification')"""
+        """Get 1-accuracy after optimizing model (only if pb_type is 'classification')"""
         true_labels = torch.argmax(y, axis=1)
         pred_labels = self.get_pred(x)
         correct=(pred_labels == true_labels)
